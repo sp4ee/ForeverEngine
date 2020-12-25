@@ -1,4 +1,6 @@
 #include "magic.h"
+#include "signal_tracker.h"
+#include "cycle_ix.h"
 #include <Arduino.h>
 
 void coil_pull()
@@ -27,7 +29,6 @@ void setup()
     pinMode(14, OUTPUT);
     pinMode(15, OUTPUT);
     coil_off();
-    pinMode(4, INPUT);
 
     ADCSRB = 0;          // (Disable) ACME: Analog Comparator Multiplexer Enable
     ACSR = bit(ACI)      // (Clear) Analog Comparator Interrupt Flag
@@ -36,43 +37,22 @@ void setup()
            ;
 }
 
-#define BUFSIZE 32
-char buf[BUFSIZE];
-
-int16_t last_sensor = HIGH;
+SignalTracker signal_tracker;
 int16_t last_comp = 0;
-
-ISR(ANALOG_COMP_vect) { }
 
 void loop()
 {
     uint16_t comp = ACSR & bit(ACO);
-    digitalWrite(13, comp != 0);
-    if (comp != 0)
+    if (comp != 0 && last_comp == 0)
     {
-        if (last_comp != comp)
-        {
-            coil_push();
-            delay(1);
-            coil_off();
-        }
+        int16_t ix = millis() % INT16_MAX;
+        signal_tracker.record_signal(ix);
+        int16_t avg_delay = signal_tracker.get_avg_delay();
+        int16_t pulse_len_micros = avg_delay * 1000 / 400;
+        coil_push();
+        delayMicroseconds(pulse_len_micros);
+        coil_off();
     }
     last_comp = comp;
-    delay(5);
-
-    // int16_t sensor = digitalRead(4);
-    // if (sensor == LOW)
-    // {
-    //     digitalWrite(13, HIGH);
-    //     if (last_sensor == HIGH)
-    //     {
-    //         coil_push();
-    //         delay(2);
-    //         coil_off();
-    //     }
-    // }
-    // else
-    //     digitalWrite(13, LOW);
-    // last_sensor = sensor;
-    // delay(10);
+    delay(1);
 }

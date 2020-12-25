@@ -9,5 +9,7 @@
 // Pin to which solenoid is connected
 #define PIN_COIL                3
 
+#define KEEP_N_SIGNALS          4
+
 // 
 #define PIN_LED                 13
