@@ -40,8 +40,9 @@ struct SignalTracker
         }
         // Remove oldest value from rolling sum
         rolling_sum -= kept_signal_delays[next_array_ix];
-        // Calculate delay
+        // Calculate delay; add to rolling sum
         int16_t delay = sub_cycles(ix, last_signal_ix);
+        rolling_sum += delay;
         // Store in new slot in array
         kept_signal_delays[next_array_ix] = delay;
         // Update index
