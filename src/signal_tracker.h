@@ -54,11 +54,4 @@ struct SignalTracker
         last_signal_ix = ix;
     }
 
-    int16_t get_avg_delay()
-    {
-        if (recorded_count == 0) return 20;
-        if (recorded_count != KEEP_N_SIGNALS) return rolling_sum / recorded_count;
-        return rolling_sum / KEEP_N_SIGNALS;
-    }
-
 };
