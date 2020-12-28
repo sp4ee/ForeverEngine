@@ -29,6 +29,7 @@ void EngineController::tick() volatile
     {
         int16_t ix = millis() % INT16_MAX;
         signal_tracker.record_signal(ix);
+        idle_counter = 0;
     }
     last_sensor = sensor;
 
@@ -47,15 +48,43 @@ void EngineController::tick() volatile
         int16_t error = TARGET_RPM - rpm;
         duty = pid.update(error);
     }
+
+    ++idle_counter;
+    // Every 32768 ticks (ca 3 seconds): try a nudge
+    if (idle_counter % 32768 == 0)
+    {
+        // Every third is a pull
+        if (idle_counter % (3 * 32768) == 0)
+            coil_pull();
+        // Before that, it's a push
+        else
+            coil_push();
+        turnoff_counter = 190;
+        kickstart_count = 2;
+    }
 }
 
 void EngineController::comparator(uint8_t comp) volatile
 {
-    // Edge right now, and coils is not active right now, and command is non-zero
-    if (comp != 0 && last_comp == 0 && turnoff_counter == 0 && duty != 0)
+    // Condition when we activate the coil at an edge:
+    // Comparator output is high, and was not high before
+    // Coil is not active right now (turnoff counter is 0)
+    if (comp != 0 && last_comp == 0)
     {
-        turnoff_counter = duty;
-        coil_push();
+        // It's a kickstart: first few pulses are independent of duty
+        if (kickstart_count > 0)
+        {
+            turnoff_counter = 190;
+            duty = 0;
+            --kickstart_count;
+            coil_push();
+        }
+        // Regular operation
+        else if (turnoff_counter == 0 && duty != 0)
+        {
+            turnoff_counter = duty;
+            coil_push();
+        }
     }
     last_comp = comp;
 }

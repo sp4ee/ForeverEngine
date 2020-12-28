@@ -13,6 +13,8 @@ struct EngineController
     volatile uint8_t last_comp = 0;
     volatile int16_t rpm = 0;
     volatile uint8_t duty = 25;
+    volatile uint32_t idle_counter = 0;
+    volatile uint8_t kickstart_count = 0;
 
     void setup() volatile;
 

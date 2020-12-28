@@ -9,5 +9,7 @@ inline void sensor_init()
 
 inline bool sensor_read()
 {
-    return digitalRead(PIN_SENSOR) == LOW;
+    bool res = digitalRead(PIN_SENSOR) == LOW;
+    //digitalWrite(13, res ? HIGH : LOW);
+    return res;
 }
