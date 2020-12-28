@@ -36,6 +36,6 @@ int16_t add_cycles(int16_t cycle_a, int16_t cycle_b)
 
 int16_t sub_cycles(int16_t later, int16_t older)
 {
-    if (later > older) return later - older;
+    if (later >= older) return later - older;
     else return INT16_MAX - older + later;
 }

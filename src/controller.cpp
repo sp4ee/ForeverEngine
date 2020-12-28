@@ -1,36 +1,22 @@
 #include "controller.h"
 #include <Arduino.h>
 
-Controller::Controller(double target_value)
-: target_value(target_value)
+double Controller::update(double error)
 {
-    last_time = millis();
-}
-
-double Controller::update(double value)
-{
-    // Time elapsed since last update
-    long curr_time = millis();
-    double delta_time = (curr_time - last_time);
-    // Update working error variables
-    error = target_value - value;
-    integral_term += ki * error * delta_time;
-    if (integral_term > max_control) integral_term = max_control;
-    else if (integral_term < -max_control) integral_term = -max_control;
-    if (integral_term != integral_term) integral_term = 0;
-    integral_term = 0;
-    error_deriv = (error - last_error) / delta_time;
-    // Remember for next time
-    last_value = value;
+    // Calculate proportional term
+    double p_term = kp * error; 
+    // Calculate the integral state with appropriate limiting
+    integral_state += error;
+    if (integral_state > integral_max) integral_state = integral_max;
+    else if (integral_state < integral_min) integral_state = integral_min;
+    // Calculate the integral term
+    double integral_term = ki * integral_state;
+    // Calculate the derivative term, manage state
+    double deriv_term = kd * (error - last_error);
     last_error = error;
-    last_time = curr_time;
-    // Compute PID result
-    double control = kp * error + integral_term + kd * error_deriv;
-    if (control > max_control) control = max_control;
-    else if (control < -max_control) control = -max_control;
-
-    last_control_deriv = (control - last_control) / delta_time;
-    last_control = control;
-
-    return control;
+    // Done
+    double ctrl = p_term + integral_term + deriv_term;
+    if (ctrl < ctrl_min) return ctrl_min;
+    if (ctrl > ctrl_max) return ctrl_max;
+    return ctrl;
 }

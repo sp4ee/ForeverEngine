@@ -6,19 +6,23 @@
 struct SignalTracker
 {
     // Time index of last signal.
-    int16_t last_signal_ix;
+    volatile int16_t last_signal_ix;
     
     // Delay of recorded signals (since previous one)
-    int16_t kept_signal_delays[KEEP_N_SIGNALS];
+    volatile int16_t kept_signal_delays[KEEP_N_SIGNALS];
 
     // Index of next signal delay to store
-    uint8_t next_array_ix;
+    volatile uint8_t next_array_ix;
 
     // Rolling sum of signals recorded so far.
-    int16_t rolling_sum;
+    volatile int32_t rolling_sum;
 
     // Number of signals recorded so far.
-    int16_t recorded_count;
+    volatile int16_t recorded_count;
+
+    volatile int16_t prev_signal_ix;
+
+    volatile int16_t last_delay;
 
     SignalTracker()
     {
@@ -28,30 +32,9 @@ struct SignalTracker
     void reset()
     {
         memset(this, 0, sizeof(SignalTracker));
+        last_signal_ix = -1;
     }
 
-    void record_signal(int16_t ix)
-    {
-        // Very first record: cannot calculate delay; just remember cycle index
-        if (last_signal_ix == 0)
-        {
-            last_signal_ix = ix;
-            return;
-        }
-        // Remove oldest value from rolling sum
-        rolling_sum -= kept_signal_delays[next_array_ix];
-        // Calculate delay; add to rolling sum
-        int16_t delay = sub_cycles(ix, last_signal_ix);
-        rolling_sum += delay;
-        // Store in new slot in array
-        kept_signal_delays[next_array_ix] = delay;
-        // Update index
-        ++next_array_ix;
-        if (next_array_ix == KEEP_N_SIGNALS) next_array_ix = 0;
-        // How many values have we seen?
-        if (recorded_count != KEEP_N_SIGNALS) ++recorded_count;
-        // This index becomes last signal index
-        last_signal_ix = ix;
-    }
+    bool record_signal(int16_t ix);
 
 };
