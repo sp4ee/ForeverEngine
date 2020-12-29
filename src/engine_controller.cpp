@@ -1,14 +1,23 @@
 #include "engine_controller.h"
 #include "coil.h"
-#include "sensor.h"
+//#include "sensor_relay.h"
 
 void EngineController::setup() volatile
 {
+    // Pin turning Hall sensor on/off
+    pinMode(PIN_HALL_SWITCH, OUTPUT);
+    digitalWrite(PIN_HALL_SWITCH, HIGH);
+
+    // Set up analaog comparator (use coild to detect magnet passing)
     // (Disable) ACME: Analog Comparator Multiplexer Enable
     ADCSRB = 0;          
     // Analog Comparator Interrupt Enable
     ACSR = bit(ACI) | bit(ACIE);
 
+    // Set up analog digital converter for Hall sensor output
+    init_adc();
+
+    // Set up 0.1ms timer - our main driver
     cli();
     // CTC mode (not PWM or some such thing)
     TCCR2A = (1 << WGM21);
@@ -22,9 +31,31 @@ void EngineController::setup() volatile
     sei();
 }
 
+void EngineController::init_adc() volatile
+{
+    // http://www.gammon.com.au/adc
+    ADCSRA =  bit (ADEN);   // turn ADC on
+    ADCSRA |= bit (ADPS0) |  bit (ADPS1) | bit (ADPS2);  // Prescaler of 128 (sampling frequency)
+    ADMUX =   bit (REFS0) | (ADCPIN_HALLSENSOR & 0x07);  // AVcc
+}
+
+void EngineController::adc_ready() volatile
+{
+    hall_reading = ADC;
+    adc_working = false;
+}
+
 void EngineController::tick() volatile
 {
-    bool sensor = sensor_read();
+    // Currently not converting: start new conversion
+    if (!adc_working)
+    {
+        ADCSRA |= bit (ADSC) | bit (ADIE);
+        adc_working = true;
+    }
+    digitalWrite(13, hall_reading > 700);
+    //bool sensor = sensor_read();
+    bool sensor = hall_reading > 700;
     if (sensor && !last_sensor)
     {
         int16_t ix = millis() % INT16_MAX;
@@ -32,6 +63,7 @@ void EngineController::tick() volatile
         idle_counter = 0;
     }
     last_sensor = sensor;
+
 
     if (turnoff_counter != 0)
     {
@@ -49,19 +81,19 @@ void EngineController::tick() volatile
         duty = pid.update(error);
     }
 
-    ++idle_counter;
-    // Every 32768 ticks (ca 3 seconds): try a nudge
-    if (idle_counter % 32768 == 0)
-    {
-        // Every third is a pull
-        if (idle_counter % (3 * 32768) == 0)
-            coil_pull();
-        // Before that, it's a push
-        else
-            coil_push();
-        turnoff_counter = 190;
-        kickstart_count = 2;
-    }
+    // ++idle_counter;
+    // // Every 32768 ticks (ca 3 seconds): try a nudge
+    // if (idle_counter % 32768 == 0)
+    // {
+    //     // Every third is a pull
+    //     if (idle_counter % (3 * 32768) == 0)
+    //         coil_pull();
+    //     // Before that, it's a push
+    //     else
+    //         coil_push();
+    //     turnoff_counter = 190;
+    //     kickstart_count = 2;
+    // }
 }
 
 void EngineController::comparator(uint8_t comp) volatile

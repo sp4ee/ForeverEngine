@@ -18,11 +18,14 @@ void Display::setup()
     oled.switchFrame();
 }
 
-void Display::update(int16_t rpm, int16_t duty)
+void Display::update(int16_t rpm, int16_t duty, int16_t other)
 {
     oled.clear();
     snprintf(buf, DISPLAY_BUFSIZE, "RPM: %d  D: %d", rpm, duty);
     oled.setCursor(0, 0);
+    oled.print(buf);
+    snprintf(buf, DISPLAY_BUFSIZE, "X: %d", other);
+    oled.setCursor(0, 2);
     oled.print(buf);
     oled.switchFrame();
 }

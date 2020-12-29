@@ -8,5 +8,5 @@ struct Display
     char buf[DISPLAY_BUFSIZE];
 
     void setup();
-    void update(int16_t rpm, int16_t duty);
+    void update(int16_t rpm, int16_t duty, int16_t other);
 };

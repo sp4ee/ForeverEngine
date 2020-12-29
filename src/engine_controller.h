@@ -16,9 +16,16 @@ struct EngineController
     volatile uint32_t idle_counter = 0;
     volatile uint8_t kickstart_count = 0;
 
+    volatile bool adc_working = false;
+    volatile int16_t hall_reading = 0;
+
     void setup() volatile;
 
+    void init_adc() volatile;
+
     void tick() volatile;
+
+    void adc_ready() volatile;
 
     void comparator(uint8_t comp) volatile;
 };
