@@ -13,6 +13,3 @@
 #define PID_GAIN_D              128  // 256
 #define PID_INTEGRAL_LIMIT      20
 #define PID_MAX_DUTY            40
-
-// Unused
-#define PIN_SENSOR              4

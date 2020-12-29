@@ -1,21 +1,20 @@
 #include "engine_controller.h"
 #include "coil.h"
-//#include "sensor_relay.h"
+#include "sensor.h"
+
+EngineController::EngineController(volatile Sensor &sensor)
+: sensor(sensor)
+{
+}
 
 void EngineController::setup() volatile
 {
-    // Pin turning Hall sensor on/off
-    pinMode(PIN_HALL_SWITCH, OUTPUT);
-    digitalWrite(PIN_HALL_SWITCH, HIGH);
 
     // Set up analaog comparator (use coild to detect magnet passing)
     // (Disable) ACME: Analog Comparator Multiplexer Enable
     ADCSRB = 0;          
     // Analog Comparator Interrupt Enable
     ACSR = bit(ACI) | bit(ACIE);
-
-    // Set up analog digital converter for Hall sensor output
-    init_adc();
 
     // Set up 0.1ms timer - our main driver
     cli();
@@ -31,39 +30,19 @@ void EngineController::setup() volatile
     sei();
 }
 
-void EngineController::init_adc() volatile
-{
-    // http://www.gammon.com.au/adc
-    ADCSRA =  bit (ADEN);   // turn ADC on
-    ADCSRA |= bit (ADPS0) |  bit (ADPS1) | bit (ADPS2);  // Prescaler of 128 (sampling frequency)
-    ADMUX =   bit (REFS0) | (ADCPIN_HALLSENSOR & 0x07);  // AVcc
-}
-
-void EngineController::adc_ready() volatile
-{
-    hall_reading = ADC;
-    adc_working = false;
-}
-
 void EngineController::tick() volatile
 {
-    // Currently not converting: start new conversion
-    if (!adc_working)
-    {
-        ADCSRA |= bit (ADSC) | bit (ADIE);
-        adc_working = true;
-    }
-    digitalWrite(13, hall_reading > 700);
-    //bool sensor = sensor_read();
-    bool sensor = hall_reading > 700;
-    if (sensor && !last_sensor)
+    // ADC currently off: power up Hall sensor
+    // At end of function, once some time has passed, we'll kick off ADC conversion
+    if (!sensor.adc_working) sensor.enable_hall_device();
+    bool is_signal = sensor.hall_reading > 700;
+    if (is_signal && !last_signal)
     {
         int16_t ix = millis() % INT16_MAX;
         signal_tracker.record_signal(ix);
         idle_counter = 0;
     }
-    last_sensor = sensor;
-
+    last_signal = is_signal;
 
     if (turnoff_counter != 0)
     {
@@ -94,6 +73,9 @@ void EngineController::tick() volatile
     //     turnoff_counter = 190;
     //     kickstart_count = 2;
     // }
+    
+    // Kick off ADC conversion if needed
+    if (!sensor.adc_working) sensor.begin_adc();
 }
 
 void EngineController::comparator(uint8_t comp) volatile

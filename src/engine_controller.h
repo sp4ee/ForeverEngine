@@ -3,29 +3,27 @@
 #include "signal_tracker.h"
 #include "pid.h"
 
+struct Sensor;
+
 struct EngineController
 {
+    volatile Sensor &sensor;
     volatile SignalTracker signal_tracker;
     volatile PID pid;
     volatile uint8_t turnoff_counter = 0;
     volatile uint16_t control_counter = 0;
-    volatile bool last_sensor = false;
+    volatile bool last_signal = false;
     volatile uint8_t last_comp = 0;
     volatile int16_t rpm = 0;
     volatile uint8_t duty = 25;
     volatile uint32_t idle_counter = 0;
     volatile uint8_t kickstart_count = 0;
 
-    volatile bool adc_working = false;
-    volatile int16_t hall_reading = 0;
+    EngineController(volatile Sensor &sensor);
 
     void setup() volatile;
 
-    void init_adc() volatile;
-
     void tick() volatile;
-
-    void adc_ready() volatile;
 
     void comparator(uint8_t comp) volatile;
 };

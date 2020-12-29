@@ -1,6 +1,7 @@
 #include "display_oled.h"
 #include "engine_controller.h"
 #include "coil.h"
+#include "sensor.h"
 #include "cycle_ix.h"
 #include "magic.h"
 #include <avr/sleep.h>
@@ -10,13 +11,14 @@
 
 #include "vcc.h"
 
-volatile EngineController engine_controller;
+volatile Sensor sensor;
+volatile EngineController engine_controller(sensor);
 Display display;
 
 void setup()
 {
     coil_init();
-    //sensor_init();
+    sensor.setup();
     engine_controller.setup();
     display.setup();
 
@@ -36,7 +38,7 @@ ISR(ANALOG_COMP_vect)
 
 ISR(ADC_vect)
 {
-    engine_controller.adc_ready();
+    sensor.adc_ready();
 }
 
 int16_t last_update_ix = 0;
@@ -53,7 +55,7 @@ void loop()
         cli();
         int16_t x_rpm = engine_controller.rpm;
         int16_t x_duty = engine_controller.duty;
-        int16_t x_x = engine_controller.hall_reading;
+        int16_t x_x = 0;
         sei();
         display.update(x_rpm, x_duty, x_x);
     }
