@@ -10,8 +10,8 @@ inline void coil_off()
 
 inline void coil_init()
 {
-    pinMode(14, OUTPUT);
-    pinMode(15, OUTPUT);
+    pinMode(PIN_COIL_A, OUTPUT);
+    pinMode(PIN_COIL_B, OUTPUT);
     coil_off();
 }
 

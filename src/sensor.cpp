@@ -13,7 +13,10 @@ void Sensor::init_adc() volatile
 {
     // http://www.gammon.com.au/adc
     ADCSRA =  bit (ADEN);   // turn ADC on
-    ADCSRA |= bit (ADPS0) |  bit (ADPS1) | bit (ADPS2);  // Prescaler of 128 (sampling frequency)
+    // Prescaler 32: 38.4k conversions per second
+    ADCSRA |= bit (ADPS0) | bit (ADPS2);
+    // Prescaler of 1289.6k conversions per second
+    //ADCSRA |= bit (ADPS0) |  bit (ADPS1) | bit (ADPS2);
     ADMUX =   bit (REFS0) | (ADCPIN_HALLSENSOR & 0x07);  // AVcc
 }
 
