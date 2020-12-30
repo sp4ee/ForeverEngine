@@ -9,6 +9,8 @@ EngineController::EngineController(volatile Sensor &sensor)
 
 void EngineController::setup() volatile
 {
+    // Measure initial voltage so we can interpret Hall sensor reading correctly.
+    sensor.measure_vcc();
 
     // Set up analaog comparator (use coild to detect magnet passing)
     // (Disable) ACME: Analog Comparator Multiplexer Enable
@@ -34,8 +36,8 @@ void EngineController::tick() volatile
 {
     // ADC currently off: power up Hall sensor
     // At end of function, once some time has passed, we'll kick off ADC conversion
-    if (!sensor.adc_working) sensor.enable_hall_device();
-    bool is_signal = sensor.hall_reading > 700;
+    if (sensor.adc_working == 0) sensor.enable_hall_device();
+    bool is_signal = sensor.hall_reading > HALLSENSOR_THRESHOLD;
     if (is_signal && !last_signal)
     {
         int16_t ix = millis() % INT16_MAX;
@@ -75,7 +77,7 @@ void EngineController::tick() volatile
     // }
     
     // Kick off ADC conversion if needed
-    if (!sensor.adc_working) sensor.begin_adc();
+    if (sensor.adc_working == 0) sensor.begin_adc();
 }
 
 void EngineController::comparator(uint8_t comp) volatile

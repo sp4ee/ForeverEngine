@@ -9,8 +9,6 @@
 #include <avr/io.h>
 #include <Arduino.h>
 
-#include "vcc.h"
-
 volatile Sensor sensor;
 volatile EngineController engine_controller(sensor);
 Display display;
@@ -42,6 +40,7 @@ ISR(ADC_vect)
 }
 
 int16_t last_update_ix = 0;
+int16_t half_seconds = 0;
 
 void loop()
 {
@@ -49,13 +48,16 @@ void loop()
     int16_t since_last_update = sub_cycles(ix, last_update_ix);
     if (since_last_update > 500)
     {
-        //int16_t vcc = get_vcc(); // 4876
-
         last_update_ix = ix;
+
+        ++half_seconds;
+        if ((half_seconds / 2) % VCC_MEASURE_SECONDS == 0)
+            sensor.measure_vcc();
+
         cli();
         int16_t x_rpm = engine_controller.rpm;
         int16_t x_duty = engine_controller.duty;
-        int16_t x_x = 0;
+        int16_t x_x = sensor.vcc;
         sei();
         display.update(x_rpm, x_duty, x_x);
     }

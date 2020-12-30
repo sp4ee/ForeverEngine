@@ -7,6 +7,8 @@
 #define PIN_COIL_B              15
 #define PIN_HALL_SWITCH         3
 #define ADCPIN_HALLSENSOR       2    // ADC2 is A2; would be Arduino pin 16 on Nano
+#define HALLSENSOR_THRESHOLD    700
+#define VCC_MEASURE_SECONDS     60
 
 #define PID_GAIN_P              13   // 8
 #define PID_GAIN_I              10   // 16
