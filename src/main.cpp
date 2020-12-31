@@ -54,11 +54,11 @@ void loop()
         if ((half_seconds / 2) % VCC_MEASURE_SECONDS == 0)
             sensor.measure_vcc();
 
-        cli();
+        noInterrupts();
         int16_t x_rpm = engine_controller.rpm;
         int16_t x_duty = engine_controller.duty;
         int16_t x_x = sensor.vcc;
-        sei();
+        interrupts();
         display.update(x_rpm, x_duty, x_x);
     }
     delay(50);

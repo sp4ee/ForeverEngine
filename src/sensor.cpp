@@ -26,7 +26,7 @@ void Sensor::adc_ready() volatile
         return;
     uint8_t low = ADCL;
     hall_reading = (ADCH << 8) | low;
-    --adc_working;
+    adc_working = 0;
     digitalWrite(PIN_HALL_SWITCH, LOW);
 }
 
@@ -43,14 +43,15 @@ void Sensor::begin_adc() volatile
 
 void Sensor::measure_vcc() volatile
 {
-    ++adc_working;
-    // Optimistic concurrency here. Timer interrupt may call begin_adc() in a race condition.
-    // If that happens, we just skip this one voltge measurement.
-    if (adc_working > 1)
-    {
-        --adc_working;
-        return;
-    }
+    // Must check this value from critical section
+    // Otherwise interrupt may call begin_adc() and we get hung up forever
+    noInterrupts();
+    adc_working += 1;
+    uint8_t adc_working_copy = adc_working;
+    if (adc_working_copy > 1) --adc_working;
+    interrupts();
+    if (adc_working_copy > 1) return;
+
     measuring_vcc = true;
     // VCC measurment magix
     // Reads internal 1V1 reference against VCC
@@ -79,5 +80,5 @@ void Sensor::measure_vcc() volatile
     // Configure system for measuring Hall sensor's voltage again.
     init_adc();
     measuring_vcc = false;
-    --adc_working;
+    adc_working = 0;
 }

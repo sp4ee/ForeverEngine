@@ -37,6 +37,7 @@ void EngineController::tick() volatile
     // ADC currently off: power up Hall sensor
     // At end of function, once some time has passed, we'll kick off ADC conversion
     if (sensor.adc_working == 0) sensor.enable_hall_device();
+    // Check last seen Hall sensor value; detect "signal", i.e., magnet passing.
     bool is_signal = sensor.hall_reading > HALLSENSOR_THRESHOLD;
     if (is_signal && !last_signal)
     {
