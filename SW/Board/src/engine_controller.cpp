@@ -34,6 +34,14 @@ void EngineController::setup() volatile
 
 void EngineController::tick() volatile
 {
+    if (turnoff_counter != 0)
+    {
+        --turnoff_counter;
+        if (turnoff_counter == 0)
+            coil_off();
+    }
+
+
     // ADC currently off: power up Hall sensor
     // At end of function, once some time has passed, we'll kick off ADC conversion
     if (sensor.adc_working == 0) sensor.enable_hall_device();
@@ -44,15 +52,17 @@ void EngineController::tick() volatile
         int16_t ix = millis() % INT16_MAX;
         signal_tracker.record_signal(ix);
         idle_counter = 0;
+
+        if (turnoff_counter == 0 && duty != 0)
+        {
+            if (rpm > 50) turnoff_counter = duty;
+            else if (rpm > 30) turnoff_counter = 400;
+            else turnoff_counter = 800;
+            coil_push();
+        }
+
     }
     last_signal = is_signal;
-
-    if (turnoff_counter != 0)
-    {
-        --turnoff_counter;
-        if (turnoff_counter == 0)
-            coil_off();   
-    }
 
     ++control_counter;
     if (control_counter == 500)
@@ -63,19 +73,20 @@ void EngineController::tick() volatile
         duty = pid.update(error);
     }
 
-    // ++idle_counter;
-    // // Every 32768 ticks (ca 3 seconds): try a nudge
-    // if (idle_counter % 32768 == 0)
-    // {
-    //     // Every third is a pull
-    //     if (idle_counter % (3 * 32768) == 0)
-    //         coil_pull();
-    //     // Before that, it's a push
-    //     else
-    //         coil_push();
-    //     turnoff_counter = 190;
-    //     kickstart_count = 2;
-    // }
+     ++idle_counter;
+     // Every 32768 ticks (ca 3 seconds): try a nudge
+     if (idle_counter % 32768 == 0)
+     {
+         coil_push();
+         //// Every third is a pull
+         //if (idle_counter % (3 * 32768) == 0)
+         //    coil_pull();
+         //// Before that, it's a push
+         //else
+         //    coil_push();
+         turnoff_counter = 800;
+         kickstart_count = 2;
+     }
     
     // Kick off ADC conversion if needed
     if (sensor.adc_working == 0) sensor.begin_adc();
@@ -83,6 +94,7 @@ void EngineController::tick() volatile
 
 void EngineController::comparator(uint8_t comp) volatile
 {
+    return;
     // Condition when we activate the coil at an edge:
     // Comparator output is high, and was not high before
     // Coil is not active right now (turnoff counter is 0)

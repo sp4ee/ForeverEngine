@@ -22,6 +22,8 @@ void setup()
 
     pinMode(13, OUTPUT);
     digitalWrite(13, LOW);
+
+    //coil_push();
 }
 
 ISR(TIMER2_COMPA_vect)
