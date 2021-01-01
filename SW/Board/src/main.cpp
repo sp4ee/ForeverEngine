@@ -31,11 +31,6 @@ ISR(TIMER2_COMPA_vect)
     engine_controller.tick();
 }
 
-ISR(ANALOG_COMP_vect)
-{
-    engine_controller.comparator(ACSR & bit(ACO));
-}
-
 ISR(ADC_vect)
 {
     sensor.adc_ready();
@@ -59,7 +54,7 @@ void loop()
         noInterrupts();
         int16_t x_rpm = engine_controller.rpm;
         int16_t x_duty = engine_controller.duty;
-        int16_t x_x = sensor.vcc;
+        int16_t x_x = sensor.coil_rolling_sum;
         interrupts();
         display.update(x_rpm, x_duty, x_x);
     }

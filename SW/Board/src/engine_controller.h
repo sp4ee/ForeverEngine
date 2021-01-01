@@ -14,6 +14,7 @@ struct EngineController
     volatile uint16_t control_counter = 0;
     volatile bool last_signal = false;
     volatile uint8_t last_comp = 0;
+    volatile bool last_coil_induced = false;
     volatile int16_t rpm = 0;
     volatile uint8_t duty = 25;
     volatile uint32_t idle_counter = 0;
@@ -24,6 +25,4 @@ struct EngineController
     void setup() volatile;
 
     void tick() volatile;
-
-    void comparator(uint8_t comp) volatile;
 };

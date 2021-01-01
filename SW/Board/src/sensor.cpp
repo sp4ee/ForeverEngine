@@ -1,33 +1,59 @@
 #include "sensor.h"
 
+Sensor::Sensor()
+{
+    memset((void*)this, 0, sizeof(Sensor));
+}
+
 void Sensor::setup() volatile
 {
     // Pin turning Hall sensor on/off
     pinMode(PIN_HALL_SWITCH, OUTPUT);
     digitalWrite(PIN_HALL_SWITCH, LOW);
     // Initialize ADC
-    init_adc();
+    init_adc(true);
 }
 
-void Sensor::init_adc() volatile
+void Sensor::init_adc(bool hall) volatile
 {
     // http://www.gammon.com.au/adc
     ADCSRA = bit(ADEN); // turn ADC on
     // Prescaler 32: 38.4k conversions per second
     ADCSRA |= bit(ADPS0) | bit(ADPS2);
-    // Prescaler of 1289.6k conversions per second
-    //ADCSRA |= bit (ADPS0) |  bit (ADPS1) | bit (ADPS2);
-    ADMUX = bit(REFS0) | (ADCPIN_HALLSENSOR & 0x07); // AVcc
+    // Measuring Hall: reference is AREF
+    if (hall) ADMUX = (ADCPIN_HALLSENSOR & 0x07);
+    // Measuring coil: reference is AREF
+    else ADMUX = (ADCPIN_COIL & 0x07);
 }
 
 void Sensor::adc_ready() volatile
 {
-    if (measuring_vcc)
-        return;
+    if (measure_mode == 1) return;
     uint8_t low = ADCL;
-    hall_reading = (ADCH << 8) | low;
+    if (measure_mode == 0)
+    {
+        hall_reading = (ADCH << 8) | low;
+        digitalWrite(PIN_HALL_SWITCH, LOW);
+    }
+    else if (measure_mode == 2)
+    {
+        int16_t coil_reading = (ADCH << 8) | low;
+        if (coil_reading > 512) // Lower value: we assume coil is powered up
+        {
+            coil_reading = 1024 - coil_reading;
+            // Remove oldest value from rolling sum
+            coil_rolling_sum -= coil_readings[coil_next_array_ix];
+            // Add value to rolling sum
+            coil_rolling_sum += coil_reading;
+            // Store in new slot in array
+            coil_readings[coil_next_array_ix] = coil_reading;
+            // Update index
+            ++coil_next_array_ix;
+            if (coil_next_array_ix == KEEP_N_SIGNALS)
+                coil_next_array_ix = 0;
+        }
+    }
     adc_working = 0;
-    digitalWrite(PIN_HALL_SWITCH, LOW);
 }
 
 void Sensor::enable_hall_device() volatile
@@ -35,9 +61,11 @@ void Sensor::enable_hall_device() volatile
     digitalWrite(PIN_HALL_SWITCH, HIGH);
 }
 
-void Sensor::begin_adc() volatile
+void Sensor::begin_adc(bool read_hall) volatile
 {
     ++adc_working;
+    measure_mode = read_hall ? 0 : 2;
+    init_adc(read_hall);
     ADCSRA |= bit(ADSC) | bit(ADIE);
 }
 
@@ -52,7 +80,7 @@ void Sensor::measure_vcc() volatile
     interrupts();
     if (adc_working_copy > 1) return;
 
-    measuring_vcc = true;
+    measure_mode = 1;
     // VCC measurment magix
     // Reads internal 1V1 reference against VCC
 #if defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny44__)
@@ -77,8 +105,5 @@ void Sensor::measure_vcc() volatile
     low = ADCL;
     reading = (ADCH << 8) | low;
     vcc = ((int32_t)1024 * 1100) / reading;
-    // Configure system for measuring Hall sensor's voltage again.
-    init_adc();
-    measuring_vcc = false;
     adc_working = 0;
 }

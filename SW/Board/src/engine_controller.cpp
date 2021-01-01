@@ -12,12 +12,6 @@ void EngineController::setup() volatile
     // Measure initial voltage so we can interpret Hall sensor reading correctly.
     sensor.measure_vcc();
 
-    // Set up analaog comparator (use coild to detect magnet passing)
-    // (Disable) ACME: Analog Comparator Multiplexer Enable
-    ADCSRB = 0;          
-    // Analog Comparator Interrupt Enable
-    ACSR = bit(ACI) | bit(ACIE);
-
     // Set up 0.1ms timer - our main driver
     cli();
     // CTC mode (not PWM or some such thing)
@@ -34,6 +28,7 @@ void EngineController::setup() volatile
 
 void EngineController::tick() volatile
 {
+    // Turn off coil if duty is over
     if (turnoff_counter != 0)
     {
         --turnoff_counter;
@@ -41,29 +36,43 @@ void EngineController::tick() volatile
             coil_off();
     }
 
+    // ADC currently off: take a new measurement; alternate between Hall sensor and coil
+    // If last one was *not* Hall, fire up sensor now.
+    // We'll start conversion at the end of this tick().
+    if (sensor.adc_working == 0 && sensor.measure_mode != 0)
+        sensor.enable_hall_device();
 
-    // ADC currently off: power up Hall sensor
-    // At end of function, once some time has passed, we'll kick off ADC conversion
-    if (sensor.adc_working == 0) sensor.enable_hall_device();
     // Check last seen Hall sensor value; detect "signal", i.e., magnet passing.
     bool is_signal = sensor.hall_reading > HALLSENSOR_THRESHOLD;
     if (is_signal && !last_signal)
     {
         int16_t ix = millis() % INT16_MAX;
         signal_tracker.record_signal(ix);
-        idle_counter = 0;
 
-        if (turnoff_counter == 0 && duty != 0)
+        if (turnoff_counter == 0 && duty != 0 && rpm <= 64)
         {
-            if (rpm > 50) turnoff_counter = duty;
-            else if (rpm > 30) turnoff_counter = 400;
+            if (rpm > 30) turnoff_counter = 400;
             else turnoff_counter = 800;
             coil_push();
+            idle_counter = 0;
         }
-
     }
     last_signal = is_signal;
 
+    bool is_coil_induced = sensor.coil_rolling_sum > 20 * KEEP_N_COIL_READS;
+    if (is_coil_induced && !last_coil_induced)
+    {
+        if (turnoff_counter == 0 && duty != 0 && rpm > 64)
+        {
+            turnoff_counter = duty;
+            coil_push();
+            idle_counter = 0;
+        }
+    }
+    last_coil_induced = is_coil_induced;
+    //digitalWrite(13, is_coil_induced);
+
+    // Periodically, update PID calculation to get new duty value.
     ++control_counter;
     if (control_counter == 500)
     {
@@ -73,48 +82,18 @@ void EngineController::tick() volatile
         duty = pid.update(error);
     }
 
-     ++idle_counter;
-     // Every 32768 ticks (ca 3 seconds): try a nudge
-     if (idle_counter % 32768 == 0)
-     {
-         coil_push();
-         //// Every third is a pull
-         //if (idle_counter % (3 * 32768) == 0)
-         //    coil_pull();
-         //// Before that, it's a push
-         //else
-         //    coil_push();
-         turnoff_counter = 800;
-         kickstart_count = 2;
-     }
-    
-    // Kick off ADC conversion if needed
-    if (sensor.adc_working == 0) sensor.begin_adc();
-}
-
-void EngineController::comparator(uint8_t comp) volatile
-{
-    return;
-    // Condition when we activate the coil at an edge:
-    // Comparator output is high, and was not high before
-    // Coil is not active right now (turnoff counter is 0)
-    if (comp != 0 && last_comp == 0)
+    ++idle_counter;
+    // Every 32768 ticks (ca 3 seconds): try a nudge
+    if (idle_counter % 32768 == 0)
     {
-        // It's a kickstart: first few pulses are independent of duty
-        if (kickstart_count > 0)
-        {
-            turnoff_counter = 190;
-            duty = 0;
-            --kickstart_count;
-            coil_push();
-        }
-        // Regular operation
-        else if (turnoff_counter == 0 && duty != 0)
-        {
-            turnoff_counter = duty;
-            coil_push();
-        }
+        // TO-DO: Implement pull, when HW is there.
+        coil_push();
+        turnoff_counter = 800;
+        kickstart_count = 2;
     }
-    last_comp = comp;
+
+    // Kick off ADC conversion if needed
+    // If last wasn't Hall, measure Hall now; otherwise, coil.
+    if (sensor.adc_working == 0) sensor.begin_adc(sensor.measure_mode != 0);
 }
 
