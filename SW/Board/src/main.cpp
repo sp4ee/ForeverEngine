@@ -54,7 +54,7 @@ void loop()
         noInterrupts();
         int16_t x_rpm = engine_controller.rpm;
         int16_t x_duty = engine_controller.duty;
-        int16_t x_x = sensor.coil_rolling_sum;
+        int16_t x_x = (half_seconds % 2) + 1;
         interrupts();
         display.update(x_rpm, x_duty, x_x);
     }

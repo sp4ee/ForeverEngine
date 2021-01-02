@@ -24,10 +24,23 @@ void EngineController::setup() volatile
     // Enable timer compare interrupt
     TIMSK2 = (1 << OCIE2A);
     sei();
+
+    // DBG: Diagnostic LED on D4 (am I ticking?)
+    pinMode(4, OUTPUT);
+    digitalWrite(4, HIGH);
 }
 
 void EngineController::tick() volatile
 {
+    // DBG: Am I ticking?
+    ++debug_counter;
+    if (debug_counter % 4096 == 0) digitalWrite(4, LOW);
+    else if (debug_counter % (4096 + 256) == 0)
+    {
+        digitalWrite(4, HIGH);
+        debug_counter = 0;
+    }
+
     // Turn off coil if duty is over
     if (turnoff_counter != 0)
     {

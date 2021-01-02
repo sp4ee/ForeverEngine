@@ -19,6 +19,7 @@ struct EngineController
     volatile uint8_t duty = 25;
     volatile uint32_t idle_counter = 0;
     volatile uint8_t kickstart_count = 0;
+    volatile uint16_t debug_counter = 0;
 
     EngineController(volatile Sensor &sensor);
 

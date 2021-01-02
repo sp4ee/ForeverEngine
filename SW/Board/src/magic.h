@@ -26,7 +26,7 @@
 
 // Fine solenoid, coild induction ADC
 #define PID_GAIN_P              64
-#define PID_GAIN_I              64
+#define PID_GAIN_I              96
 #define PID_GAIN_D              4096
-#define PID_INTEGRAL_LIMIT      32
+#define PID_INTEGRAL_LIMIT      48
 #define PID_MAX_DUTY            32
