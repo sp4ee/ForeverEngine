@@ -9,8 +9,11 @@
 #define ADCPIN_HALLSENSOR       2    // ADC2 is A2; would be Arduino pin 16 on Nano
 #define ADCPIN_COIL				0    // ADC0 is A0; would be Arduino pin 14 on Nano
 #define HALLSENSOR_THRESHOLD    700
+#define COIL_FILTER_THRESHOLD	512
 #define KEEP_N_COIL_READS       8
+#define COIL_INDUCED_THRESHOLD	20
 #define VCC_MEASURE_SECONDS     60
+
 
 // Rough solenoid, analog comparator
 //#define PID_GAIN_P              13   // 8

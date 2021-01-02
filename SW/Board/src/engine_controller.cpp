@@ -53,7 +53,7 @@ void EngineController::tick() volatile
     // If last one was *not* Hall, fire up sensor now.
     // We'll start conversion at the end of this tick().
     if (sensor.adc_working == 0 && sensor.measure_mode != 0)
-        sensor.enable_hall_device();
+        sensor.set_hall_device_power(true);
 
     // Check last seen Hall sensor value; detect "signal", i.e., magnet passing.
     bool is_signal = sensor.hall_reading > HALLSENSOR_THRESHOLD;
@@ -72,7 +72,7 @@ void EngineController::tick() volatile
     }
     last_signal = is_signal;
 
-    bool is_coil_induced = sensor.coil_rolling_sum > 20 * KEEP_N_COIL_READS;
+    bool is_coil_induced = sensor.coil_reading_tracker.rolling_sum > COIL_INDUCED_THRESHOLD * KEEP_N_COIL_READS;
     if (is_coil_induced && !last_coil_induced)
     {
         if (turnoff_counter == 0 && duty != 0 && rpm > 64)

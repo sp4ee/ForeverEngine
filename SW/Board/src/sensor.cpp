@@ -33,32 +33,18 @@ void Sensor::adc_ready() volatile
     if (measure_mode == 0)
     {
         hall_reading = (ADCH << 8) | low;
-        digitalWrite(PIN_HALL_SWITCH, LOW);
+        set_hall_device_power(false);
     }
     else if (measure_mode == 2)
     {
-        int16_t coil_reading = (ADCH << 8) | low;
-        if (coil_reading > 512) // Lower value: we assume coil is powered up
-        {
-            coil_reading = 1024 - coil_reading;
-            // Remove oldest value from rolling sum
-            coil_rolling_sum -= coil_readings[coil_next_array_ix];
-            // Add value to rolling sum
-            coil_rolling_sum += coil_reading;
-            // Store in new slot in array
-            coil_readings[coil_next_array_ix] = coil_reading;
-            // Update index
-            ++coil_next_array_ix;
-            if (coil_next_array_ix == KEEP_N_SIGNALS)
-                coil_next_array_ix = 0;
-        }
+        coil_reading_tracker.record_reading((ADCH << 8) | low);
     }
     adc_working = 0;
 }
 
-void Sensor::enable_hall_device() volatile
+void Sensor::set_hall_device_power(bool on) volatile
 {
-    digitalWrite(PIN_HALL_SWITCH, HIGH);
+    digitalWrite(PIN_HALL_SWITCH, on ? HIGH : LOW);
 }
 
 void Sensor::begin_adc(bool read_hall) volatile
