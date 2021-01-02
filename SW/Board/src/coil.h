@@ -1,6 +1,6 @@
 #pragma once
+#include "src/Logic/magic.h"
 #include <Arduino.h>
-#include "magic.h"
 
 inline void coil_off()
 {

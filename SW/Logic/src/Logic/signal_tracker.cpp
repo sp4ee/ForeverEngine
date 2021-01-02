@@ -1,5 +1,6 @@
 #include "signal_tracker.h"
 #include "cycle_ix.h"
+#include <string.h>
 
 #define RPM_TERM  (60000 / MAGNET_COUNT)
 

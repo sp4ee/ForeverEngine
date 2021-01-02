@@ -1,7 +1,7 @@
 #pragma once
-#include "coil_reading_tracker.h"
-#include "magic.h"
-#include <Arduino.h>
+#include "src/Logic/coil_reading_tracker.h"
+#include "src/Logic/magic.h"
+#include <stdint.h>
 
 // Manages ADC to retrieve reading of Hall sensor, and of supply voltage.
 struct Sensor

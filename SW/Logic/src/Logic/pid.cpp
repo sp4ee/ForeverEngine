@@ -19,5 +19,5 @@ uint8_t PID::update(int16_t error) volatile
     if (duty < 0) duty = 0;
     duty /= 128;
     if (duty > PID_MAX_DUTY) return PID_MAX_DUTY;
-    return duty;
+    return (uint8_t)duty;
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include <stdint.h>
 
 // Compares two cycle indexes. Returns -1 if A < B; 0 if equal; 1 if A > B.
 // Uses heuristics to detect rollover of only one cycle. If A is near 0 and B is near INT16_MAX, then A > B.

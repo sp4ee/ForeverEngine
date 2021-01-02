@@ -1,6 +1,6 @@
 #pragma once
-#include <Arduino.h>
 #include "magic.h"
+#include <stdint.h>
 
 struct SignalTracker
 {

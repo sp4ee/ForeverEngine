@@ -1,6 +1,6 @@
 #pragma once
 #include "magic.h"
-#include <Arduino.h>
+#include <stdint.h>
 
 struct CoilReadingTracker
 {
@@ -8,10 +8,7 @@ struct CoilReadingTracker
     volatile uint8_t next_array_ix;
     volatile int16_t rolling_sum;
 
-    CoilReadingTracker()
-    {
-        memset((void*)this, 0, sizeof(CoilReadingTracker));
-    }
+    CoilReadingTracker();
 
     inline void record_reading(int16_t reading) volatile
     {

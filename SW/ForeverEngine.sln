@@ -7,20 +7,39 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Board", "Board\Board.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tiny4kOLED-1.5.4", "Libraries\Tiny4kOLED\1.5.4\Tiny4kOLED\Tiny4kOLED-1.5.4.vcxitems", "{D33D88F6-8E74-475D-B85C-E0134AFAD17A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Logic", "Logic\Logic.vcxitems", "{F2C11B5C-8851-448C-BD5A-20BE27842F3F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "Test\Test.vcxproj", "{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Libraries\Tiny4kOLED\1.5.4\Tiny4kOLED\Tiny4kOLED-1.5.4.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Logic\Logic.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
 		Libraries\Tiny4kOLED\1.5.4\Tiny4kOLED\Tiny4kOLED-1.5.4.vcxitems*{d33d88f6-8e74-475d-b85c-e0134afad17a}*SharedItemsImports = 9
+		Logic\Logic.vcxitems*{ddc34be5-0fd1-424d-b731-c9bf9cf05a4a}*SharedItemsImports = 4
+		Logic\Logic.vcxitems*{f2c11b5c-8851-448c-bd5a-20be27842f3f}*SharedItemsImports = 9
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x64.ActiveCfg = Debug|Win32
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.ActiveCfg = Debug|Win32
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
+		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x64.ActiveCfg = Release|Win32
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Debug|x64.ActiveCfg = Debug|x64
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Debug|x64.Build.0 = Debug|x64
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Debug|x86.ActiveCfg = Debug|Win32
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Debug|x86.Build.0 = Debug|Win32
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Release|x64.ActiveCfg = Release|x64
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Release|x64.Build.0 = Release|x64
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Release|x86.ActiveCfg = Release|Win32
+		{DDC34BE5-0FD1-424D-B731-C9BF9CF05A4A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

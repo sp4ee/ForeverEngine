@@ -1,7 +1,7 @@
 #pragma once
-#include <Arduino.h>
-#include "signal_tracker.h"
-#include "pid.h"
+#include "src/Logic/signal_tracker.h"
+#include "src/Logic/pid.h"
+#include <stdint.h>
 
 struct Sensor;
 

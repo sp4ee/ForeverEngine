@@ -1,4 +1,5 @@
 #include "sensor.h"
+#include <Arduino.h>
 
 Sensor::Sensor()
 {

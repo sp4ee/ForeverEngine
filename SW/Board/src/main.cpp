@@ -2,11 +2,8 @@
 #include "engine_controller.h"
 #include "coil.h"
 #include "sensor.h"
-#include "cycle_ix.h"
-#include "magic.h"
-#include <avr/sleep.h>
-#include <avr/power.h>
-#include <avr/io.h>
+#include "src/Logic/cycle_ix.h"
+#include "src/Logic/magic.h"
 #include <Arduino.h>
 
 volatile Sensor sensor;
